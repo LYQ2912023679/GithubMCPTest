@@ -1,4 +1,5 @@
 from typing import Tuple, Dict
+from enum import IntEnum
 
 WINDOW_WIDTH: int = 600
 WINDOW_HEIGHT: int = 600
@@ -12,6 +13,40 @@ FPS: int = 60
 INITIAL_SNAKE_LENGTH: int = 3
 SCORE_PER_FOOD: int = 10
 SPEED_UP_INTERVAL: int = 5
+
+
+class Difficulty(IntEnum):
+    EASY = 0
+    MEDIUM = 1
+    HARD = 2
+
+
+DIFFICULTY_CONFIG: Dict[Difficulty, Dict[str, float]] = {
+    Difficulty.EASY: {
+        "speed": 0.20,
+        "min_speed": 0.10,
+        "speed_up_interval": 8,
+        "speed_up_factor": 0.97,
+    },
+    Difficulty.MEDIUM: {
+        "speed": 0.15,
+        "min_speed": 0.06,
+        "speed_up_interval": 5,
+        "speed_up_factor": 0.95,
+    },
+    Difficulty.HARD: {
+        "speed": 0.10,
+        "min_speed": 0.04,
+        "speed_up_interval": 3,
+        "speed_up_factor": 0.92,
+    },
+}
+
+DIFFICULTY_LABELS: Dict[Difficulty, str] = {
+    Difficulty.EASY: "简单",
+    Difficulty.MEDIUM: "中等",
+    Difficulty.HARD: "困难",
+}
 
 COLOR_BG: Tuple[int, int, int] = (0, 0, 0)
 COLOR_SNAKE: Tuple[int, int, int] = (0, 255, 0)

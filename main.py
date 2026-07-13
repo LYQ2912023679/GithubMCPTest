@@ -6,6 +6,7 @@ from settings import (
     Point, UP, DOWN, LEFT, RIGHT,
     WINDOW_WIDTH, WINDOW_HEIGHT, FPS, SNAKE_SPEED, MIN_SNAKE_SPEED,
     SCORE_PER_FOOD, SPEED_UP_INTERVAL, GAME_TITLE,
+    Difficulty, DIFFICULTY_CONFIG, DIFFICULTY_LABELS,
 )
 from snake import Snake
 from food import Food
@@ -33,9 +34,20 @@ class Game:
         self.food.respawn(self.snake.body)
         self.score: ScoreManager = ScoreManager()
         self.move_timer: float = 0.0
-        self.current_speed: float = SNAKE_SPEED
         self.food_eaten: int = 0
         self.running: bool = True
+        self.selected_difficulty: Difficulty = Difficulty.MEDIUM
+        self.current_speed: float = SNAKE_SPEED
+        self.min_speed: float = MIN_SNAKE_SPEED
+        self.speed_up_interval: int = SPEED_UP_INTERVAL
+        self.speed_up_factor: float = 0.95
+
+    def _apply_difficulty(self, diff: Difficulty) -> None:
+        cfg = DIFFICULTY_CONFIG[diff]
+        self.current_speed = cfg["speed"]
+        self.min_speed = cfg["min_speed"]
+        self.speed_up_interval = int(cfg["speed_up_interval"])
+        self.speed_up_factor = cfg["speed_up_factor"]
 
     def reset(self) -> None:
         self.snake = Snake()
@@ -43,8 +55,8 @@ class Game:
         self.food.respawn(self.snake.body)
         self.score.reset()
         self.move_timer = 0.0
-        self.current_speed = SNAKE_SPEED
         self.food_eaten = 0
+        self._apply_difficulty(self.selected_difficulty)
 
     def run(self) -> None:
         while self.running:
@@ -70,7 +82,17 @@ class Game:
             return
 
         if self.state == GameState.START:
-            self.state = GameState.RUNNING
+            if event.key in (pygame.K_UP, pygame.K_w):
+                self.selected_difficulty = Difficulty(
+                    (self.selected_difficulty - 1) % len(Difficulty)
+                )
+            elif event.key in (pygame.K_DOWN, pygame.K_s):
+                self.selected_difficulty = Difficulty(
+                    (self.selected_difficulty + 1) % len(Difficulty)
+                )
+            elif event.key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_RIGHT, pygame.K_d):
+                self._apply_difficulty(self.selected_difficulty)
+                self.state = GameState.RUNNING
 
         elif self.state == GameState.RUNNING:
             if event.key in (pygame.K_UP, pygame.K_w):
@@ -108,9 +130,9 @@ class Game:
             self.snake.grow()
             self.score.add(SCORE_PER_FOOD)
             self.food_eaten += 1
-            if self.food_eaten % SPEED_UP_INTERVAL == 0:
+            if self.food_eaten % self.speed_up_interval == 0:
                 self.current_speed = max(
-                    self.current_speed * 0.95, MIN_SNAKE_SPEED
+                    self.current_speed * self.speed_up_factor, self.min_speed
                 )
             if not self.food.respawn(self.snake.body):
                 self.score.update_high_score()
@@ -123,13 +145,14 @@ class Game:
 
     def render(self) -> None:
         if self.state == GameState.START:
-            self.renderer.draw_start_screen()
+            self.renderer.draw_start_screen(self.selected_difficulty)
             return
 
         self.renderer.draw_background()
         self.renderer.draw_snake(self.snake)
         self.renderer.draw_food(self.food)
-        self.renderer.draw_score(self.score.current_score, self.score.high_score)
+        diff_label = DIFFICULTY_LABELS[self.selected_difficulty]
+        self.renderer.draw_score(self.score.current_score, self.score.high_score, diff_label)
 
         if self.state == GameState.PAUSED:
             self.renderer.draw_pause_overlay()

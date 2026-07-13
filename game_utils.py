@@ -7,6 +7,7 @@ from settings import (
     Point, GRID_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT,
     COLOR_BG, COLOR_SNAKE, COLOR_SNAKE_HEAD, COLOR_FOOD, COLOR_TEXT, COLOR_PAUSE,
     HIGHSCORE_FILE, GAME_TITLE,
+    Difficulty, DIFFICULTY_LABELS, DIFFICULTY_CONFIG,
 )
 from snake import Snake
 from food import Food
@@ -88,8 +89,8 @@ class Renderer:
         pygame.draw.rect(self.surface, COLOR_FOOD, rect)
         pygame.draw.rect(self.surface, (150, 0, 0), rect, 1)
 
-    def draw_score(self, score: int, high: int) -> None:
-        text = f"得分: {score}    最高分: {high}"
+    def draw_score(self, score: int, high: int, diff_label: str = "") -> None:
+        text = f"得分: {score}    最高分: {high}    难度: {diff_label}"
         rendered = self.font_small.render(text, True, COLOR_TEXT)
         self.surface.blit(rendered, (10, 5))
 
@@ -105,14 +106,22 @@ class Renderer:
         rect = rendered.get_rect(center=pos)
         self.surface.blit(rendered, rect)
 
-    def draw_start_screen(self) -> None:
+    def draw_start_screen(self, selected: Difficulty = Difficulty.MEDIUM) -> None:
         self.draw_background()
         cx, cy = WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2
-        self.draw_text(GAME_TITLE, (cx, cy - 40), size=48)
-        self.draw_text("按任意键开始", (cx, cy + 20), size=24)
+        self.draw_text(GAME_TITLE, (cx, cy - 120), size=48)
+        self.draw_text("选择难度:", (cx, cy - 50), size=24)
+
+        colors = [(100, 255, 100), (255, 255, 100), (255, 100, 100)]
+        for i, diff in enumerate(Difficulty):
+            label = DIFFICULTY_LABELS[diff]
+            y_pos = cy + i * 45
+            prefix = "▶ " if diff == selected else "  "
+            self.draw_text(prefix + label, (cx, y_pos), size=24, color=colors[i])
+
         self.draw_text(
-            "方向键/WASD 移动 | 空格 暂停 | ESC 退出",
-            (cx, cy + 70), size=18,
+            "↑↓ 选择难度 | 回车/空格 确认 | ESC 退出",
+            (cx, cy + 180), size=18,
         )
 
     def draw_pause_overlay(self) -> None:
