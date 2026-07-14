@@ -1,0 +1,21 @@
+{
+  "name": "snake-web-tests",
+  "version": "1.0.0",
+  "description": "Playwright automated tests for Snake Game (LYQ-1)",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:report": "npx playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "http-server": "^14.1.1"
+  },
+  "main": "game.js",
+  "directories": {
+    "test": "tests"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
