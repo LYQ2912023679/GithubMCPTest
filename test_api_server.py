@@ -1,9 +1,8 @@
 import pytest
-import json
 import os
-import tempfile
+import sys
 
-os.chdir(tempfile.mkdtemp())
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from api_server import app, GameSession, GameState, Snake, Food, GRID_W, GRID_H, WINDOW_WIDTH, WINDOW_HEIGHT, GAME_TITLE
 
