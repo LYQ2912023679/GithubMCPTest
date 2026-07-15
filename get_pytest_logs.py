@@ -1,7 +1,4 @@
 import requests
-import urllib3
-
-urllib3.disable_warnings()
 
 import os
 token = os.environ.get('GITHUB_TOKEN', '')
@@ -11,15 +8,15 @@ headers = {
 }
 
 runs_url = 'https://api.github.com/repos/LYQ2912023679/GithubMCPTest/actions/runs?per_page=1'
-runs_resp = requests.get(runs_url, headers=headers, verify=False)
+runs_resp = requests.get(runs_url, headers=headers)
 run = runs_resp.json()['workflow_runs'][0]
 
 jobs_url = f"https://api.github.com/repos/LYQ2912023679/GithubMCPTest/actions/runs/{run['id']}/jobs"
-jobs_resp = requests.get(jobs_url, headers=headers, verify=False)
+jobs_resp = requests.get(jobs_url, headers=headers)
 job = jobs_resp.json()['jobs'][0]
 
 logs_url = f"https://api.github.com/repos/LYQ2912023679/GithubMCPTest/actions/jobs/{job['id']}/logs"
-logs_resp = requests.get(logs_url, headers=headers, verify=False)
+logs_resp = requests.get(logs_url, headers=headers)
 
 lines = logs_resp.text.split('\n')
 for i, line in enumerate(lines):

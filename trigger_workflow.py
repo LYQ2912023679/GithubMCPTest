@@ -1,8 +1,5 @@
 import requests
-import urllib3
 import time
-
-urllib3.disable_warnings()
 
 import os
 token = os.environ.get('GITHUB_TOKEN', '')
@@ -12,7 +9,7 @@ headers = {
 }
 
 url = 'https://api.github.com/repos/LYQ2912023679/GithubMCPTest/actions/workflows/python-app.yml/dispatches'
-resp = requests.post(url, headers=headers, json={'ref': 'main'}, verify=False)
+resp = requests.post(url, headers=headers, json={'ref': 'main'})
 print(f'Trigger status: {resp.status_code}')
 if resp.status_code == 204:
     print('Workflow dispatch triggered successfully!')
@@ -22,7 +19,7 @@ else:
 time.sleep(3)
 
 runs_url = 'https://api.github.com/repos/LYQ2912023679/GithubMCPTest/actions/runs?per_page=3'
-runs_resp = requests.get(runs_url, headers=headers, verify=False)
+runs_resp = requests.get(runs_url, headers=headers)
 if runs_resp.status_code == 200:
     runs = runs_resp.json().get('workflow_runs', [])
     for run in runs[:3]:

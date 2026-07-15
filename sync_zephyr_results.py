@@ -1,10 +1,7 @@
 import requests
 import json
 import sys
-import urllib3
-from datetime import datetime
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from datetime import datetime, timezone
 
 ZEPHYR_API_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb250ZXh0Ijp7ImJhc2VVcmwiOiJodHRwczovL2xpbmd4aS16ZW5nLmF0bGFzc2lhbi5uZXQiLCJ1c2VyIjp7ImFjY291bnRJZCI6IjcxMjAyMDpjNDY5YjU1MS0xOGMzLTQ2MDUtOTMwZS0zNWYwYjU3MzAyZDQiLCJ0b2tlbklkIjoiZjIyNjc5MjgtMzY2Mi00NTQ4LTllOWMtMTcwNTkyZWZkM2YzIn0sImVudmlyb25tZW50SWQiOiIyYmFhZWI2OS0xNWFjLTQ5NTUtOGViNi1lMzQ2YWExNTY3YWEifSwiaXNzIjoiY29tLmthbm9haC50ZXN0LW1hbmFnZXIiLCJzdWIiOiJGT1JHRS1jNTc0NTcyOS0xMzUyLTQ4ZTMtYTM3Yi01MjEwMmQxNzQzZmUiLCJleHAiOjE4MTU0NzA3MzMsImlhdCI6MTc4MzkzNDczM30.zthXdO-glJEnvzYlHWTGQrcJT0bpRtlpJ8gYmNPUNVw"
 
@@ -44,11 +41,11 @@ for m in mapping["mappings"]:
         "testCycleKey": TEST_CYCLE_KEY,
         "statusName": status_name,
         "comment": comment,
-        "actualEndDate": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        "actualEndDate": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     }
 
     try:
-        resp = requests.post(f"{API_BASE}/testexecutions", headers=HEADERS, json=payload, verify=False)
+        resp = requests.post(f"{API_BASE}/testexecutions", headers=HEADERS, json=payload)
         if resp.status_code in (200, 201):
             data = resp.json()
             exec_key = data.get("key", "N/A")
@@ -79,5 +76,5 @@ report = {
 with open("zephyr_sync_report.json", "w", encoding="utf-8") as f:
     json.dump(report, f, ensure_ascii=False, indent=2)
 
-print(f"\n同步完成: {success_count}/{len(results_log)} 成功, {fail_count} 失败")
-print(f"报告已保存到 zephyr_sync_report.json")
+print("\n同步完成: {}/{} 成功, {} 失败".format(success_count, len(results_log), fail_count))
+print("报告已保存到 zephyr_sync_report.json")

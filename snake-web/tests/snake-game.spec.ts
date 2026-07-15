@@ -6,7 +6,7 @@ async function startGame(page: Page) {
   await page.goto(GAME_URL);
   await page.waitForLoadState('networkidle');
   await page.keyboard.press('Enter');
-  await page.waitForTimeout(200);
+  await waitForGameTick(page);
 }
 
 async function getState(page: Page): Promise<string> {
@@ -37,6 +37,20 @@ async function getDirection(page: Page): Promise<{x:number,y:number}> {
   return page.evaluate(() => (window as any).game.getDirection());
 }
 
+async function waitForGameTick(page: Page) {
+  const frame = await page.evaluate(() => (window as any).game.frameCount);
+  await page.waitForFunction((f) => (window as any).game.frameCount > f, frame);
+}
+
+async function waitForGameState(page: Page, state: string) {
+  await page.waitForFunction((s) => (window as any).game.getState() === s, state);
+}
+
+async function waitForFrames(page: Page, count: number) {
+  const frame = await page.evaluate(() => (window as any).game.frameCount);
+  await page.waitForFunction((p) => (window as any).game.frameCount >= p[0] + p[1], [frame, count]);
+}
+
 async function moveTowardFood(page: Page) {
   const snake = await getSnake(page);
   const food = await getFood(page);
@@ -60,7 +74,7 @@ async function moveTowardFood(page: Page) {
   else if (canLeft) await page.keyboard.press('ArrowLeft');
   else if (canUp) await page.keyboard.press('ArrowUp');
 
-  await page.waitForTimeout(200);
+  await waitForGameTick(page);
 }
 
 async function eatFood(page: Page, maxAttempts: number = 200): Promise<boolean> {
@@ -116,7 +130,7 @@ test.describe('LYQ-T3: 蛇初始属性验证', () => {
     await page.keyboard.press('Enter');
     const snake = await getSnake(page);
 
-    expect(snake.length).toBe(3);
+    expect(snake).toHaveLength(3);
 
     const centerX = Math.floor(600 / 30 / 2);
     const centerY = Math.floor(600 / 30 / 2);
@@ -136,22 +150,22 @@ test.describe('LYQ-T4: 方向键控制蛇移动验证', () => {
     await startGame(page);
 
     await page.keyboard.press('ArrowUp');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     let dir = await getDirection(page);
     expect(dir.y).toBe(-1);
 
     await page.keyboard.press('ArrowRight');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     dir = await getDirection(page);
     expect(dir.x).toBe(1);
 
     await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     dir = await getDirection(page);
     expect(dir.y).toBe(1);
 
     await page.keyboard.press('ArrowLeft');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     dir = await getDirection(page);
     expect(dir.x).toBe(-1);
   });
@@ -163,22 +177,22 @@ test.describe('LYQ-T5: WASD键控制蛇移动验证', () => {
     await startGame(page);
 
     await page.keyboard.press('w');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     let dir = await getDirection(page);
     expect(dir.y).toBe(-1);
 
     await page.keyboard.press('d');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     dir = await getDirection(page);
     expect(dir.x).toBe(1);
 
     await page.keyboard.press('s');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     dir = await getDirection(page);
     expect(dir.y).toBe(1);
 
     await page.keyboard.press('a');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     dir = await getDirection(page);
     expect(dir.x).toBe(-1);
   });
@@ -193,17 +207,17 @@ test.describe('LYQ-T6: 蛇防反向移动验证', () => {
     expect(initialDir.x).toBe(1);
 
     await page.keyboard.press('ArrowLeft');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     let dir = await getDirection(page);
     expect(dir.x).toBe(1);
 
     await page.keyboard.press('ArrowUp');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     dir = await getDirection(page);
     expect(dir.y).toBe(-1);
 
     await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     dir = await getDirection(page);
     expect(dir.y).toBe(-1);
   });
@@ -227,7 +241,7 @@ test.describe('LYQ-T7: 食物随机生成验证', () => {
     const food1 = await getFood(page);
     for (let i = 0; i < 5; i++) {
       await page.keyboard.press('ArrowRight');
-      await page.waitForTimeout(200);
+      await waitForGameTick(page);
     }
     const food2 = await getFood(page);
     const snake2 = await getSnake(page);
@@ -302,7 +316,7 @@ test.describe('LYQ-T11: 撞墙游戏结束验证', () => {
 
     for (let i = 0; i < 25; i++) {
       await page.keyboard.press('ArrowRight');
-      await page.waitForTimeout(200);
+      await waitForGameTick(page);
       const state = await getState(page);
       if (state === 'GAME_OVER') break;
     }
@@ -332,7 +346,7 @@ test.describe('LYQ-T12: 撞自身游戏结束验证', () => {
       else if (food.y > head.y) await page.keyboard.press('ArrowDown');
       else if (food.y < head.y) await page.keyboard.press('ArrowUp');
 
-      await page.waitForTimeout(200);
+      await waitForGameTick(page);
       const score = await getScore(page);
       if (score > ate * 10) ate = Math.floor(score / 10);
       const state = await getState(page);
@@ -340,11 +354,11 @@ test.describe('LYQ-T12: 撞自身游戏结束验证', () => {
     }
 
     await page.keyboard.press('ArrowUp');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     await page.keyboard.press('ArrowLeft');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
 
     const state = await getState(page);
     const isGameOver = state === 'GAME_OVER';
@@ -394,7 +408,7 @@ test.describe('LYQ-T14: 最高分持久化存储验证', () => {
 
     for (let i = 0; i < 25; i++) {
       await page.keyboard.press('ArrowRight');
-      await page.waitForTimeout(200);
+      await waitForGameTick(page);
       if (await getState(page) === 'GAME_OVER') break;
     }
 
@@ -415,7 +429,7 @@ test.describe('LYQ-T15: 空格键暂停继续验证', () => {
     const snakeBefore = await getSnake(page);
 
     await page.keyboard.press(' ');
-    await page.waitForTimeout(500);
+    await waitForGameState(page, 'PAUSED');
 
     const state = await getState(page);
     expect(state).toBe('PAUSED');
@@ -425,12 +439,12 @@ test.describe('LYQ-T15: 空格键暂停继续验证', () => {
     await expect(statusEl).toHaveText('已暂停');
 
     const snakeDuring = await getSnake(page);
-    await page.waitForTimeout(500);
+    await waitForFrames(page, 5);
     const snakeAfter = await getSnake(page);
     expect(snakeDuring).toEqual(snakeAfter);
 
     await page.keyboard.press(' ');
-    await page.waitForTimeout(200);
+    await waitForGameState(page, 'RUNNING');
     const state2 = await getState(page);
     expect(state2).toBe('RUNNING');
   });
@@ -443,20 +457,20 @@ test.describe('LYQ-T16: R键重新开始验证', () => {
 
     for (let i = 0; i < 25; i++) {
       await page.keyboard.press('ArrowRight');
-      await page.waitForTimeout(200);
+      await waitForGameTick(page);
       if (await getState(page) === 'GAME_OVER') break;
     }
 
     expect(await getState(page)).toBe('GAME_OVER');
 
     await page.keyboard.press('r');
-    await page.waitForTimeout(300);
+    await waitForGameState(page, 'RUNNING');
 
     const state = await getState(page);
     expect(state).toBe('RUNNING');
 
     const snake = await getSnake(page);
-    expect(snake.length).toBe(3);
+    expect(snake).toHaveLength(3);
 
     const score = await getScore(page);
     expect(score).toBe(0);
@@ -469,7 +483,7 @@ test.describe('LYQ-T17: ESC键退出游戏验证', () => {
     await startGame(page);
 
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(200);
+    await waitForGameState(page, 'EXITED');
 
     const state = await getState(page);
     expect(state).toBe('EXITED');
@@ -495,7 +509,7 @@ test.describe('LYQ-T18: 网格对齐验证', () => {
     expect(Number.isInteger(food.y)).toBe(true);
 
     await page.keyboard.press('ArrowRight');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     const snake2 = await getSnake(page);
     for (const seg of snake2) {
       expect(Number.isInteger(seg.x)).toBe(true);
@@ -511,7 +525,7 @@ test.describe('LYQ-T19: 按键即时响应验证', () => {
 
     const t1 = Date.now();
     await page.keyboard.press('ArrowUp');
-    await page.waitForTimeout(200);
+    await waitForGameTick(page);
     const dir = await getDirection(page);
     const t2 = Date.now();
 
@@ -525,7 +539,7 @@ test.describe('LYQ-T20: 帧率稳定性验证', () => {
   test('游戏主循环保持稳定帧率', async ({ page }) => {
     await startGame(page);
 
-    await page.waitForTimeout(2000);
+    await waitForFrames(page, 120);
 
     const fps = await page.evaluate(() => (window as any).game.getFps());
     expect(fps).toBeGreaterThan(30);

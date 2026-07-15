@@ -55,8 +55,9 @@ class SnakeGame {
     loadHighScore() {
         try {
             const saved = localStorage.getItem('snakeHighScore');
-            return saved ? parseInt(saved, 10) : 0;
+            return saved ? Number.parseInt(saved, 10) : 0;
         } catch (e) {
+            console.warn('Failed to load high score from localStorage:', e);
             return 0;
         }
     }
@@ -64,17 +65,81 @@ class SnakeGame {
     saveHighScore() {
         try {
             localStorage.setItem('snakeHighScore', String(this.highScore));
-        } catch (e) {}
+        } catch (e) {
+            console.warn('Failed to save high score to localStorage:', e);
+        }
     }
 
     generateFood() {
         let valid = false;
         while (!valid) {
             this.food = {
-                x: Math.floor(Math.random() * (CANVAS_WIDTH / CELL_SIZE)),
-                y: Math.floor(Math.random() * (CANVAS_HEIGHT / CELL_SIZE))
+                x: Math.floor(Math.random() * (CANVAS_WIDTH / CELL_SIZE)), // NOSONAR - game context, not security-sensitive
+                y: Math.floor(Math.random() * (CANVAS_HEIGHT / CELL_SIZE))  // NOSONAR - game context, not security-sensitive
             };
             valid = !this.snake.some(seg => seg.x === this.food.x && seg.y === this.food.y);
+        }
+    }
+
+    handleStartKey(e) {
+        this.state = 'RUNNING';
+        this.overlay.classList.add('hidden');
+        this.startTime = performance.now();
+        e.preventDefault();
+    }
+
+    handleGameOverKey(e, key) {
+        if (key === 'r') {
+            this.reset();
+            this.state = 'RUNNING';
+            this.overlay.classList.add('hidden');
+            this.statusIndicator.classList.add('hidden');
+            this.startTime = performance.now();
+        } else if (key === 'escape') {
+            this.state = 'EXITED';
+            this.overlay.innerHTML = '<h1>游戏已退出</h1>';
+            this.overlay.classList.remove('hidden');
+        }
+        e.preventDefault();
+    }
+
+    handleRunningKey(e, key) {
+        switch (key) {
+            case 'arrowup': case 'w':
+                if (this.direction.y !== 1) this.pendingDirection = { x: 0, y: -1 };
+                e.preventDefault(); break;
+            case 'arrowdown': case 's':
+                if (this.direction.y !== -1) this.pendingDirection = { x: 0, y: 1 };
+                e.preventDefault(); break;
+            case 'arrowleft': case 'a':
+                if (this.direction.x !== 1) this.pendingDirection = { x: -1, y: 0 };
+                e.preventDefault(); break;
+            case 'arrowright': case 'd':
+                if (this.direction.x !== -1) this.pendingDirection = { x: 1, y: 0 };
+                e.preventDefault(); break;
+            case ' ':
+                this.state = 'PAUSED';
+                this.statusIndicator.textContent = '已暂停';
+                this.statusIndicator.classList.remove('hidden');
+                e.preventDefault(); break;
+            case 'escape':
+                this.state = 'EXITED';
+                this.overlay.innerHTML = '<h1>游戏已退出</h1>';
+                this.overlay.classList.remove('hidden');
+                e.preventDefault(); break;
+        }
+    }
+
+    handlePausedKey(e, key) {
+        if (key === ' ') {
+            this.state = 'RUNNING';
+            this.statusIndicator.classList.add('hidden');
+            e.preventDefault();
+        } else if (key === 'escape') {
+            this.state = 'EXITED';
+            this.overlay.innerHTML = '<h1>游戏已退出</h1>';
+            this.overlay.classList.remove('hidden');
+            e.preventDefault();
         }
     }
 
@@ -83,68 +148,22 @@ class SnakeGame {
             const key = e.key.toLowerCase();
 
             if (this.state === 'START') {
-                this.state = 'RUNNING';
-                this.overlay.classList.add('hidden');
-                this.startTime = performance.now();
-                e.preventDefault();
+                this.handleStartKey(e);
                 return;
             }
 
             if (this.state === 'GAME_OVER') {
-                if (key === 'r') {
-                    this.reset();
-                    this.state = 'RUNNING';
-                    this.overlay.classList.add('hidden');
-                    this.statusIndicator.classList.add('hidden');
-                    this.startTime = performance.now();
-                } else if (key === 'escape') {
-                    this.state = 'EXITED';
-                    this.overlay.innerHTML = '<h1>游戏已退出</h1>';
-                    this.overlay.classList.remove('hidden');
-                }
-                e.preventDefault();
+                this.handleGameOverKey(e, key);
                 return;
             }
 
             if (this.state === 'RUNNING') {
-                switch (key) {
-                    case 'arrowup': case 'w':
-                        if (this.direction.y !== 1) this.pendingDirection = { x: 0, y: -1 };
-                        e.preventDefault(); break;
-                    case 'arrowdown': case 's':
-                        if (this.direction.y !== -1) this.pendingDirection = { x: 0, y: 1 };
-                        e.preventDefault(); break;
-                    case 'arrowleft': case 'a':
-                        if (this.direction.x !== 1) this.pendingDirection = { x: -1, y: 0 };
-                        e.preventDefault(); break;
-                    case 'arrowright': case 'd':
-                        if (this.direction.x !== -1) this.pendingDirection = { x: 1, y: 0 };
-                        e.preventDefault(); break;
-                    case ' ':
-                        this.state = 'PAUSED';
-                        this.statusIndicator.textContent = '已暂停';
-                        this.statusIndicator.classList.remove('hidden');
-                        e.preventDefault(); break;
-                    case 'escape':
-                        this.state = 'EXITED';
-                        this.overlay.innerHTML = '<h1>游戏已退出</h1>';
-                        this.overlay.classList.remove('hidden');
-                        e.preventDefault(); break;
-                }
+                this.handleRunningKey(e, key);
                 return;
             }
 
             if (this.state === 'PAUSED') {
-                if (key === ' ') {
-                    this.state = 'RUNNING';
-                    this.statusIndicator.classList.add('hidden');
-                    e.preventDefault();
-                } else if (key === 'escape') {
-                    this.state = 'EXITED';
-                    this.overlay.innerHTML = '<h1>游戏已退出</h1>';
-                    this.overlay.classList.remove('hidden');
-                    e.preventDefault();
-                }
+                this.handlePausedKey(e, key);
             }
         });
     }
