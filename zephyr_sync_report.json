@@ -1,0 +1,151 @@
+{
+  "syncTime": "2026-07-14 14:58:25",
+  "project": "LYQ",
+  "testCycle": "LYQ-R2",
+  "totalTestCases": 20,
+  "successCount": 20,
+  "failCount": 0,
+  "allAutomationPassed": true,
+  "details": [
+    {
+      "testCase": "LYQ-T1",
+      "name": "游戏窗口初始化验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T2",
+      "name": "开始界面显示验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T3",
+      "name": "蛇初始属性验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T4",
+      "name": "方向键控制蛇移动验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T5",
+      "name": "WASD键控制蛇移动验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T6",
+      "name": "蛇防反向移动验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T7",
+      "name": "食物随机生成验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T8",
+      "name": "食物颜色区分验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T9",
+      "name": "吃到食物蛇变长验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T10",
+      "name": "吃到食物加分验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T11",
+      "name": "撞墙游戏结束验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T12",
+      "name": "撞自身游戏结束验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T13",
+      "name": "当前分数实时显示验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T14",
+      "name": "最高分持久化存储验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T15",
+      "name": "空格键暂停继续验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T16",
+      "name": "R键重新开始验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T17",
+      "name": "ESC键退出游戏验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T18",
+      "name": "网格对齐验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T19",
+      "name": "按键即时响应验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    },
+    {
+      "testCase": "LYQ-T20",
+      "name": "帧率稳定性验证",
+      "status": "Pass",
+      "executionKey": "N/A",
+      "success": true
+    }
+  ]
+}

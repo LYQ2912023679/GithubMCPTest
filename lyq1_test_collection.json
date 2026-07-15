@@ -1,0 +1,174 @@
+{
+  "info": {
+    "name": "LYQ-1 贪吃蛇游戏接口测试",
+    "description": "基于 Zephyr 测试用例 LYQ-T1~T20 生成的 Postman Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://127.0.0.1:5000"},
+    {"key": "session_id", "value": "game-1"}
+  ],
+  "item": [
+    {
+      "name": "TC01-游戏窗口初始化验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('窗口宽度为600', () => { pm.expect(pm.response.json().window.width).to.eql(600); });",
+        "pm.test('窗口高度为600', () => { pm.expect(pm.response.json().window.height).to.eql(600); });",
+        "pm.test('窗口标题正确', () => { pm.expect(pm.response.json().window.title).to.eql('贪吃蛇游戏'); });",
+        "pm.collectionVariables.set('session_id', pm.response.json().session_id);"
+      ]}}],
+      "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"difficulty\": \"medium\"}"}, "url": "{{base_url}}/api/game"}
+    },
+    {
+      "name": "TC02-开始界面显示验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('状态为RUNNING', () => { pm.expect(pm.response.json().state).to.eql('RUNNING'); });",
+        "pm.test('蛇长度为3', () => { pm.expect(pm.response.json().snake_length).to.eql(3); });"
+      ]}}],
+      "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"difficulty\": \"easy\"}"}, "url": "{{base_url}}/api/game"}
+    },
+    {
+      "name": "TC03-蛇初始属性验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('蛇长度为3', () => { pm.expect(pm.response.json().snake_length).to.eql(3); });",
+        "pm.test('方向为右', () => { pm.expect(pm.response.json().snake_direction).to.eql([1, 0]); });",
+        "pm.test('蛇头在中央', () => { const b = pm.response.json().snake_body; pm.expect(b[0]).to.eql([15, 15]); });"
+      ]}}],
+      "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"difficulty\": \"medium\"}"}, "url": "{{base_url}}/api/game"}
+    },
+    {
+      "name": "TC04-方向键控制蛇移动验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('设置方向成功', () => { pm.expect(pm.response.json().success).to.eql(true); });",
+        "pm.test('方向为上', () => { pm.expect(pm.response.json().game.snake_direction).to.eql([0, -1]); });"
+      ]}}],
+      "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"direction\": \"up\"}"}, "url": "{{base_url}}/api/game/{{session_id}}/move"}
+    },
+    {
+      "name": "TC05-WASD键控制蛇移动验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('设置方向成功', () => { pm.expect(pm.response.json().success).to.eql(true); });",
+        "pm.test('方向为左', () => { pm.expect(pm.response.json().game.snake_direction).to.eql([-1, 0]); });"
+      ]}}],
+      "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"direction\": \"left\"}"}, "url": "{{base_url}}/api/game/{{session_id}}/move"}
+    },
+    {
+      "name": "TC06-蛇防反向移动验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('反向移动被拒绝', () => { pm.expect(pm.response.json().success).to.eql(false); });"
+      ]}}],
+      "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"direction\": \"right\"}"}, "url": "{{base_url}}/api/game/{{session_id}}/move"}
+    },
+    {
+      "name": "TC07-食物随机生成验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "const g = pm.response.json();",
+        "pm.test('食物在网格内', () => { const f = g.food_position; pm.expect(f[0]).to.be.within(0, g.grid.width-1); pm.expect(f[1]).to.be.within(0, g.grid.height-1); });",
+        "pm.test('食物不与蛇重叠', () => { const o = g.snake_body.some(p => p[0]===g.food_position[0] && p[1]===g.food_position[1]); pm.expect(o).to.eql(false); });"
+      ]}}],
+      "request": {"method": "GET", "url": "{{base_url}}/api/game/{{session_id}}"}
+    },
+    {
+      "name": "TC08-食物颜色区分验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "const c = pm.response.json().colors;",
+        "pm.test('背景黑色', () => { pm.expect(c.background).to.eql([0,0,0]); });",
+        "pm.test('蛇绿色', () => { pm.expect(c.snake[1]).to.be.above(0); });",
+        "pm.test('食物红色', () => { pm.expect(c.food[0]).to.be.above(0); });"
+      ]}}],
+      "request": {"method": "GET", "url": "{{base_url}}/api/game/{{session_id}}"}
+    },
+    {
+      "name": "TC09-吃到食物蛇变长验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('步进成功', () => { pm.expect(pm.response.json().game).to.exist; });"
+      ]}}],
+      "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"steps\": 1}"}, "url": "{{base_url}}/api/game/{{session_id}}/step"}
+    },
+    {
+      "name": "TC10-吃到食物加分验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('分数非负', () => { pm.expect(pm.response.json().score).to.be.at.least(0); });"
+      ]}}],
+      "request": {"method": "GET", "url": "{{base_url}}/api/game/{{session_id}}/score"}
+    },
+    {
+      "name": "TC11-撞墙游戏结束验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('步进返回结果', () => { pm.expect(pm.response.json().steps).to.exist; });"
+      ]}}],
+      "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"steps\": 30}"}, "url": "{{base_url}}/api/game/{{session_id}}/step"}
+    },
+    {
+      "name": "TC12-撞自身游戏结束验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('状态有效', () => { pm.expect(['RUNNING','PAUSED','GAME_OVER','WIN']).to.include(pm.response.json().state); });"
+      ]}}],
+      "request": {"method": "GET", "url": "{{base_url}}/api/game/{{session_id}}"}
+    },
+    {
+      "name": "TC13-当前分数实时显示验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('score存在', () => { pm.expect(pm.response.json().score).to.exist; });",
+        "pm.test('high_score存在', () => { pm.expect(pm.response.json().high_score).to.exist; });"
+      ]}}],
+      "request": {"method": "GET", "url": "{{base_url}}/api/game/{{session_id}}"}
+    },
+    {
+      "name": "TC14-最高分持久化存储验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('high_score存在', () => { pm.expect(pm.response.json().high_score).to.exist; });",
+        "pm.test('最高分非负', () => { pm.expect(pm.response.json().high_score).to.be.at.least(0); });"
+      ]}}],
+      "request": {"method": "GET", "url": "{{base_url}}/api/highscore"}
+    },
+    {
+      "name": "TC15-空格键暂停继续验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('暂停成功', () => { pm.expect(pm.response.json().success).to.eql(true); });",
+        "pm.test('状态PAUSED', () => { pm.expect(pm.response.json().game.state).to.eql('PAUSED'); });"
+      ]}}],
+      "request": {"method": "POST", "url": "{{base_url}}/api/game/{{session_id}}/pause"}
+    },
+    {
+      "name": "TC16-R键重新开始验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('状态RUNNING', () => { pm.expect(pm.response.json().state).to.eql('RUNNING'); });",
+        "pm.test('分数为0', () => { pm.expect(pm.response.json().score).to.eql(0); });",
+        "pm.test('蛇长度3', () => { pm.expect(pm.response.json().snake_length).to.eql(3); });"
+      ]}}],
+      "request": {"method": "POST", "url": "{{base_url}}/api/game/{{session_id}}/reset"}
+    },
+    {
+      "name": "TC17-ESC键退出游戏验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('API正常', () => { pm.expect(pm.response.json().status).to.eql('ok'); });"
+      ]}}],
+      "request": {"method": "GET", "url": "{{base_url}}/api/health"}
+    },
+    {
+      "name": "TC18-网格对齐验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "const g = pm.response.json();",
+        "pm.test('网格尺寸正确', () => { pm.expect(g.grid.width).to.eql(30); pm.expect(g.grid.height).to.eql(30); });",
+        "pm.test('蛇身在网格内', () => { g.snake_body.forEach(p => { pm.expect(p[0]).to.be.within(0, g.grid.width-1); pm.expect(p[1]).to.be.within(0, g.grid.height-1); }); });"
+      ]}}],
+      "request": {"method": "GET", "url": "{{base_url}}/api/game/{{session_id}}"}
+    },
+    {
+      "name": "TC19-按键即时响应验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('方向设置成功', () => { pm.expect(pm.response.json().success).to.eql(true); });"
+      ]}}],
+      "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"direction\": \"down\"}"}, "url": "{{base_url}}/api/game/{{session_id}}/move"}
+    },
+    {
+      "name": "TC20-帧率稳定性验证",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('speed存在', () => { pm.expect(pm.response.json().speed).to.exist; });",
+        "pm.test('speed为正数', () => { pm.expect(pm.response.json().speed).to.be.above(0); });"
+      ]}}],
+      "request": {"method": "GET", "url": "{{base_url}}/api/config"}
+    }
+  ]
+}
